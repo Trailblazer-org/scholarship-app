@@ -100,34 +100,35 @@ const UsersServices = {
 
     loginUser: async (email: string, password: string) => {
         try {
-            const User = await UsersRepository.findOne(email);
-            if (!User) {
+            const user = await UsersRepository.findOne(email);
+            if (!user) {
                return null;
             }
             console.log(password);
             // console.log(User);
             // console.log(User.password);
-            const isMatch = await bcrypt.compare(password, User.password);
+            const isMatch = await bcrypt.compare(password, user.password);
             console.log("service", isMatch)
             if (!isMatch) {
                console.log({ message: "Invalid email or password XXXX" });
             }
             const Payload = {
-               id: User._id,
-               name: User.name,
-               email: User.email
+               id: user._id,
+               name: user.name,
+               email: user.email,
+               role: user.role
             }
                 // Authorization
             const accessToken = jwt.sign(Payload, config.JWT_ACCESS_SECRET, { expiresIn: "10m" });
             const refreshToken = jwt.sign(Payload, config.JWT_REFRESH_SECRET, { expiresIn: "30d" });
 
             const newRefreshToken = new Auth({
-               userId: User._id,
+               userId: user._id,
                RefreshToken: refreshToken
             })
 
             await newRefreshToken.save();
-            return { accessToken, refreshToken };
+            return { accessToken, refreshToken, user };
          } catch (error) {
             console.log("Users service error", error);
          }

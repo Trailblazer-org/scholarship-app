@@ -5,9 +5,10 @@ import { jwtPayload } from "../types/entity";
 interface LoginUserArgs {
   email: string;
   password: string;
+
 }
 
-export async function loginUser({ email, password }: LoginUserArgs) {
+export async function loginUser({ email, password}: LoginUserArgs) {
   try {
     const res = await fetch('http://localhost:8000/api/v1/users/login', {
       method: 'POST',

@@ -2,7 +2,6 @@ import type { Request, Response } from "express";
 import UsersServices from "../services/users.services";
 import { IUser } from "../types/users.type";
 
-
 const UserController = {
    handleGetAllUser: async (_: Request, res: Response) => {
       const allUsers = await UsersServices.getAll();
@@ -18,13 +17,22 @@ const UserController = {
          return res.json({ message: "Invalid email or password" });
       }
 
-      const { accessToken, refreshToken } = loginUser;
+      const { accessToken, refreshToken, user } = loginUser;
+
+      // Create the payload for the JWT, including the role
+      const payload = {
+         id: user._id,
+         name: user.name,
+         email: user.email,
+         role: user.role, // Include the role in the payload
+      };
 
       return res
          .status(200)
          .cookie("accessToken", accessToken, { httpOnly: true })
          .cookie("refreshToken", refreshToken, { httpOnly: true })
-         .json({ message: "success login", token: loginUser });
+         .cookie("token", JSON.stringify(payload))
+         .redirect(user.role === "admin" ? "http://localhost:5173/dashboard" : "http://localhost:5173/prompt");
    },
 
    handleLogoutUser: async (req: Request, res: Response) => {
@@ -102,7 +110,6 @@ const UserController = {
          // business logic to update a scholarship
          // Call the service to update the scholarship
          const updateUser = await UsersServices.updateUser(userID, req.body);
-         
 
          if (!updateUser) {
             return res.status(404).json({ message: "User not found" });
@@ -132,8 +139,5 @@ const UserController = {
       }
    },
 };
-
-
-
 
 export default UserController;
